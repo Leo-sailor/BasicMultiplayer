@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Response,status
-from Server.games import Game
-from Server.Vector2 import basic_boundary as bb, Vector2
+from games import Game
+from Vector2 import basic_boundary as bb, Vector2
 from time import time
 
 app = FastAPI()

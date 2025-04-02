@@ -3,11 +3,11 @@ from time import time_ns
 from typing import Literal
 import pygame as pg
 from requests import Response
-from Client.BaseClasses import IP, PORT, Vector2, gen_token,basic_boundary
+from BaseClasses import IP, PORT, Vector2, gen_token,basic_boundary
 from aiohttp import ClientSession, ClientResponse
 from random import randrange
 import requests
-from Client.ViewportManager import ViewportManager
+from ViewportManager import ViewportManager
 
 
 class ObjectHolder:

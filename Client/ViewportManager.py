@@ -1,8 +1,7 @@
 import random
-
-from Client.BaseClasses import Vector2, Boundary,display_text
-ZERO_VEC = Vector2(0, 0)
+from BaseClasses import Vector2, Boundary,display_text
 import pygame as pg
+ZERO_VEC = Vector2(0, 0)
 class ViewportManager:
     def __init__(self,display:pg.Surface,boundary:Boundary,starting_position:Vector2):
         self.game_boundary = boundary

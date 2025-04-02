@@ -1,5 +1,5 @@
 from os import urandom
-from Server.Vector2 import Vector2, Boundary
+from Vector2 import Vector2, Boundary
 from time import time, time_ns
 from hashlib import scrypt
 from math import floor

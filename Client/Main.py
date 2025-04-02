@@ -1,7 +1,6 @@
 import traceback
 from logger import log
-from Client.BaseClasses import display_multi_line_text
-from Server.Vector2 import Vector2
+from BaseClasses import display_multi_line_text, Vector2
 from Start import start
 from Play import play
 from os import linesep
