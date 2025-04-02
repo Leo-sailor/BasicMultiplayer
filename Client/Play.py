@@ -3,11 +3,12 @@ from time import time_ns
 from typing import Literal
 import pygame as pg
 from requests import Response
-from BaseClasses import IP, PORT, Vector2, gen_token,Boundary
+from Client.BaseClasses import IP, PORT, Vector2, gen_token,Boundary,basic_boundary
 from aiohttp import ClientSession, ClientResponse
 from random import randrange
 import requests
-from Client.BaseClasses import display_text
+from Client.ViewportManager import ViewportManager
+
 
 class ObjectHolder:
     def __init__(self, val):
@@ -85,6 +86,7 @@ async def receiver(server_num, name, others_state:ObjectHolder)->tuple[Literal["
                 others_state.set_value(json['data'])
     return "Quit",[0]
 async def ui(screen:pg.Surface,others_state,client_state) -> tuple[Literal["Quit","Start"],list[int]]:
+    viewport = ViewportManager(screen,basic_boundary,Vector2(0,0))
     last_time = time_ns()
     while True:
         current_time = time_ns()
@@ -108,9 +110,15 @@ async def ui(screen:pg.Surface,others_state,client_state) -> tuple[Literal["Quit
             direction -= 180 * delta_time
         if keys[pg.K_RIGHT] or keys[pg.K_d]:
             direction += 180 * delta_time
+        if keys[pg.K_PLUS]:
+            viewport.adjust_zoom(1+ 1*delta_time)
+        if keys[pg.K_MINUS]:
+            viewport.adjust_zoom(1-(1*delta_time))
+        screen.fill((0, 0, 0))
+        viewport.render_background()
         client_state[0] = Vector2.from_dir_mag(direction, speed)
-        client_state[1] = client_state[1] + client_state[0] * delta_time
-        screen.fill((0,0,0))
+        client_state[1] = basic_boundary.clamp(client_state[1] + (client_state[0] * delta_time))
+        viewport.update_viewport_center(client_state[1], client_state[0])
         for i,player in enumerate(others_state):
             velocity = Vector2(player['velocity'][0],player['velocity'][1])
             position = Vector2(player['position'][0],player['position'][1])
@@ -118,9 +126,7 @@ async def ui(screen:pg.Surface,others_state,client_state) -> tuple[Literal["Quit
             player['position'] = new_position.tup()
             others_state[i] = player
             color = (127,127,127) if player['archived'] else (255,255,255)
-            pg.draw.circle(screen, color, (int(new_position.x), int(new_position.y)), 30)
-            display_text(10,player['name'],screen,(0,0,0),center_pos=new_position)
-        pg.draw.circle(screen, (255,255,255), (int(client_state[1].x), int(client_state[1].y)), 30)
-        display_text(10, "You", screen, (0, 0, 0), center_pos=client_state[1])
+            viewport.render_ball(30,color,player['name'],new_position)
+        viewport.render_ball(30,(255,255,255),'You',client_state[1])
         pg.display.flip()
         await asyncio.sleep(0.01)

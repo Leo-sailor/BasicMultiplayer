@@ -1,5 +1,5 @@
 import traceback
-from BaseClasses import display_multi_line_text
+from Client.BaseClasses import display_multi_line_text
 from Server.Vector2 import Vector2
 from Start import start
 from Play import play
@@ -21,16 +21,15 @@ def error_screen(error:Exception, display:pg.Surface):
     for _ in range(0,int(60/0.1)):
         for event in pg.event.get():
             if event.type == pg.QUIT:
-                return "Quit"
+                return "Quit",[0]
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_RETURN:
-                    return "Start"
+                    return "Start",[0]
                 elif event.key == pg.K_ESCAPE:
-                    return "Quit"
+                    return "Quit",[0]
         time.sleep(0.1)
     return "Quit",[0]
 def f_quit(display, code, *args):
-    display.bit_length()
     pg.quit()
     exit(code)
 
@@ -62,8 +61,6 @@ while True:
         mode,data = func(screen,*data)
     except Exception as e:
         mode = e
-    if mode == "Quit":
-        breakpoint()
     if isinstance(mode,Exception) or issubclass(type(mode),Exception):
         try:
             mode,data = error_screen(mode,screen)
