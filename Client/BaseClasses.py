@@ -5,8 +5,8 @@ from time import time
 
 import pygame as pg
 
-IP = "192.168.1.224"
-PORT = "8000"
+IP = "server-polished-firefly-481.fly.dev"
+PORT = ""
 
 
 class Vector2:
