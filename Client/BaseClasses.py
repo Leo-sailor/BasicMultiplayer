@@ -5,7 +5,7 @@ from time import time
 
 import pygame as pg
 
-IP = "127.0.0.1"
+IP = "192.168.1.224"
 PORT = "8000"
 
 

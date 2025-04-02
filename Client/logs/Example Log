@@ -1,0 +1,2 @@
+time,level,file,line,message,data,traceback(optional)
+2025-04-02T18:20:17.175570,info,C:\Users\Leo Yates\PycharmProjects\FastAPIProject\Client\Main.py,50,Pygame initialized,None,[C:\Users\Leo Yates\PycharmProjects\FastAPIProject\Client\logger.py:45 log()];[C:\Users\Leo Yates\PycharmProjects\FastAPIProject\Client\Main.py:50 <module>()]

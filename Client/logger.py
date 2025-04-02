@@ -20,7 +20,7 @@ class _Logger:
         self.preserve_open = open
         self.last_time = date
         self.file = file_loc
-    def log(self,level:Literal[0,1,2,3,4,"debug","info","warning","error","critical"],message:str,data: Any,traceback:bool = None):
+    def log(self,level:Literal[0,1,2,3,4,"debug","info","warning","error","critical"],message:str,data: Any = None,traceback:bool = None):
         if isinstance(level,int):
             if 0<=level<=4:
                 level_name = level_codes[level]
@@ -45,7 +45,7 @@ class _Logger:
                 info = inspect.getframeinfo(frame)
                 file = info.filename
                 if n == 1:
-                    line = info.lineno
+                    line = str(info.lineno)
                     file = file
                 stack.append('[{}:{} {}()]'.format(file, info.lineno, info.function))
             stack = ";".join(stack)
@@ -53,8 +53,8 @@ class _Logger:
             stack = "Traceback Disabled"
             caller_frame = inspect.stack()[1][0]
             info = inspect.getframeinfo(caller_frame)
-            line = info.lineno
-            file = info.filename
+            line = str(info.lineno)
+            file = str(info.filename)
         self.queue.append([datetime.datetime.now().isoformat(),level_name,file,line,message,data_str,stack])
         self.check_queue()
     def check_queue(self):
