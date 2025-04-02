@@ -1,4 +1,5 @@
 import traceback
+from logger import log
 from Client.BaseClasses import display_multi_line_text
 from Server.Vector2 import Vector2
 from Start import start
@@ -29,7 +30,9 @@ def error_screen(error:Exception, display:pg.Surface):
                     return "Quit",[0]
         time.sleep(0.1)
     return "Quit",[0]
-def f_quit(display, code, *args):
+def f_quit(display:pg.surface, code, *args):
+    if args is None:
+        display.fill((0,0,0))
     pg.quit()
     exit(code)
 
@@ -45,6 +48,7 @@ def setup_screen():
     return new_screen
 
 pg.init()
+log.log(1,"Pygame initialized")
 screen = setup_screen()
 mode = "Start"
 func = f_quit
@@ -66,5 +70,5 @@ while True:
             mode,data = error_screen(mode,screen)
         except Exception as e:
             print(f"A Fatal error occurred while trying to catch another error:{e}\nQuitting now:")
-            f_quit(1)
+            f_quit(screen,1)
 

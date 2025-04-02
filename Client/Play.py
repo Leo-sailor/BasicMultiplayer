@@ -3,7 +3,7 @@ from time import time_ns
 from typing import Literal
 import pygame as pg
 from requests import Response
-from Client.BaseClasses import IP, PORT, Vector2, gen_token,Boundary,basic_boundary
+from Client.BaseClasses import IP, PORT, Vector2, gen_token,basic_boundary
 from aiohttp import ClientSession, ClientResponse
 from random import randrange
 import requests
@@ -32,7 +32,7 @@ async def play_async(screen:pg.Surface,server_num:int)->tuple[Literal["Quit","St
     response: Response = requests.post(f'http://{IP}:{PORT}/{server_num}/join/{name}')
     json:dict = response.json()
     try:
-        assert json.get('message') == f"Player {name} successfully joined game {server_num}"
+        assert response.status_code == 201
     except:
         raise ConnectionError
     code = json.get('private_code')
@@ -61,7 +61,7 @@ async def sender(server_num: int,private_code:int,client_state:ObjectHolder)->tu
             token = gen_token(private_code)
             response = await session.put(f"http://{IP}:{PORT}/{server_num}/update/{token}/{velx},{vely}/{posx},{posy}")
             json = await response.json()
-            if response.status != 200 or json.get('message')[:3] != "Pla":
+            if response.status != 200:
                 print("ERROR: Failed to send position to server")
                 print(f"Request: http://{IP}:{PORT}/{server_num}/update/{token}/{velx},{vely}/{posx},{posy}")
                 print(f"Response: {response.status}, {json}")
@@ -76,7 +76,6 @@ async def receiver(server_num, name, others_state:ObjectHolder)->tuple[Literal["
             json:dict = await response.json()
             try:
                 assert response.status == 200
-                assert json.get('message')[:3] == "Gam"
             except AssertionError:
                 print("ERROR: Failed to send position to server")
                 print(f"Request: http://{IP}:{PORT}/{server_num}/get/{name}")
@@ -110,7 +109,7 @@ async def ui(screen:pg.Surface,others_state,client_state) -> tuple[Literal["Quit
             direction -= 180 * delta_time
         if keys[pg.K_RIGHT] or keys[pg.K_d]:
             direction += 180 * delta_time
-        if keys[pg.K_PLUS]:
+        if keys[pg.K_EQUALS]:
             viewport.adjust_zoom(1+ 1*delta_time)
         if keys[pg.K_MINUS]:
             viewport.adjust_zoom(1-(1*delta_time))

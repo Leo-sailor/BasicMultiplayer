@@ -30,13 +30,15 @@ class Game:
     def player_update(self, submitted_token:int, position:Vector2, velocity:Vector2):
         self.iterate()
         updated = False
+        valid_tokens = []
         for player in self.players:
-            if submitted_token in player.hash_token():
+            valid_tokens.append(player.hash_token())
+            if submitted_token in valid_tokens[-1]:
                 player.client_update(position, velocity)
                 updated = True
                 break
         if not updated:
-            raise LookupError(f"The player with hash_token {submitted_token} cannot be found in any player")
+            raise LookupError(f"The player with hash_token {submitted_token} cannot be found in any player, Accepted Tokes{valid_tokens}")
     def get_game_data(self, *, excluded_names:list[str] | str):
         self.iterate()
         if isinstance(excluded_names, str):
@@ -55,13 +57,15 @@ class Game:
     def player_leave(self,submitted_token:int):
         self.iterate()
         found = False
+        valid_tokens = []
         for n,player in enumerate(self.players):
-            if submitted_token in player.hash_token():
+            valid_tokens.append(player.hash_token())
+            if submitted_token in valid_tokens[-1]:
                 self.players.pop(n)
                 found = True
                 break
         if not found:
-            raise LookupError(f"The player with hash_token {submitted_token} cannot be found in any player")
+            raise LookupError(f"The player with hash_token {submitted_token} cannot be found in any player, accepted tokens: {valid_tokens}")
     def iterate(self):
         current_time = time_ns()
         delta_time = (current_time - self.last_iteration) / 10**9
