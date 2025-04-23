@@ -23,7 +23,7 @@ class Game:
         for player in self.players:
             if player.name == name:
                 raise ValueError(f"Player name '{name}' is already taken")
-        private_session_token = int.from_bytes(urandom(8))
+        private_session_token = int.from_bytes(urandom(8),"big")
         player = Player(name, private_session_token, self.start_position)
         self.players.append(player)
         return private_session_token
@@ -113,6 +113,6 @@ class Player:
         key = str(self.private_session_token).encode()
         hash_one = scrypt(key, salt=salt, n=16384, r=8, p=1, dklen=32)
         hash_two = scrypt(key, salt=alt_salt, n=16384, r=8, p=1, dklen=32)
-        return [int.from_bytes(hash_one), int.from_bytes(hash_two)]
+        return [int.from_bytes(hash_one,"big"), int.from_bytes(hash_two,"big")]
 
 

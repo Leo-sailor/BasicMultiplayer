@@ -7,8 +7,7 @@ from os import linesep
 import time
 import pygame as pg
 from pygame.locals import RESIZABLE
-WHITE = (255,255,255)
-GREEN = (0,255,0)
+
 def error_screen(error:Exception, display:pg.Surface):
     display.fill((0, 0, 0))
     text = (f"There has been a major error, Press (ENTER) to restart app, "
@@ -28,7 +27,7 @@ def error_screen(error:Exception, display:pg.Surface):
                 elif event.key == pg.K_ESCAPE:
                     return "Quit",[0]
         time.sleep(0.1)
-    return "Quit",[0]
+    return screen,"Quit",[0]
 def f_quit(display:pg.surface, code, *args):
     if args is None:
         display.fill((0,0,0))
@@ -61,12 +60,12 @@ while True:
     except KeyError:
         mode = ModuleNotFoundError(f"The {mode} tier 1 game mode has not been found")
     try:
-        mode,data = func(screen,*data)
+        screen,mode,data = func(screen,*data)
     except Exception as e:
         mode = e
     if isinstance(mode,Exception) or issubclass(type(mode),Exception):
         try:
-            mode,data = error_screen(mode,screen)
+            screen,mode,data = error_screen(mode,screen)
         except Exception as e:
             print(f"A Fatal error occurred while trying to catch another error:{e}\nQuitting now:")
             f_quit(screen,1)

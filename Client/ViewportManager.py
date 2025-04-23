@@ -1,6 +1,7 @@
 import random
 from BaseClasses import Vector2, Boundary,display_text
 import pygame as pg
+ZOOM_MAX = 5
 ZERO_VEC = Vector2(0, 0)
 class ViewportManager:
     def __init__(self,display:pg.Surface,boundary:Boundary,starting_position:Vector2):
@@ -20,7 +21,8 @@ class ViewportManager:
         elif not self.check_if_screen_coord_is_inside_game(Vector2(self.screen.get_width(),self.screen.get_height())):
             bad_game_coord = self.screen_coords_to_game_coords(Vector2(self.screen.get_width(),self.screen.get_height()))
             self.center -= self.game_boundary.boundary_to_outside_point(bad_game_coord)
-    def adjust_zoom(self, scale_factor):
+    def adjust_zoom(self, scale_factor:float):
+        assert scale_factor > 0
         self.zoom *= scale_factor
         self.check_zoom()
     def check_zoom(self):
@@ -29,8 +31,8 @@ class ViewportManager:
         zoom_min = max(horizontal_zoom_min, vertical_zoom_min)
         if self.zoom <= zoom_min:
             self.zoom = zoom_min
-        if self.zoom >= 100:
-            self.zoom = 100
+        if self.zoom >= ZOOM_MAX:
+            self.zoom = ZOOM_MAX
     def game_coords_to_screen_coords(self,game_coords:Vector2):
         screen_coords = (game_coords - self.center) * self.zoom
         screen_coords.y = -screen_coords.y

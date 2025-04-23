@@ -68,7 +68,7 @@ def generate_token(code)-> int:
     salt = str(correct_time).encode()
     key = str(code).encode()
     hash_one = scrypt(key, salt=salt, n=16384, r=8, p=1, dklen=32)
-    return int.from_bytes(hash_one)
+    return int.from_bytes(hash_one,"big")
 time_any_response("get","/ping")
 test_response("get","/test/hello", {"message": "hello"})
 code = test_response("post","/0/join/leo", {"message": "Player leo successfully joined game 0","start_position":[0,0]}, ignored_response_fields=["private_code"],force_print=True).json()["private_code"]

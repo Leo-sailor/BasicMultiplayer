@@ -2,12 +2,19 @@ import math
 import random
 from hashlib import scrypt
 from time import time
-
 import pygame as pg
-
-IP = "server-polished-firefly-481.fly.dev"
-PORT = ""
-
+import requests
+#Very First code to run
+WEB_ADDRESS = "server-polished-firefly-481.fly.dev"
+IP = "192.168.1.224"
+PORT = "8000"
+try:
+    response = requests.get(f'http://{IP}:{PORT}/ping',timeout=0.5)
+    if response.status_code == 200 and response.json()['message'] == 'pong':
+        LINK = f"http://{IP}:{PORT}"
+except (ConnectionError,requests.exceptions.Timeout,requests.exceptions.ConnectTimeout):
+    LINK = "https://" + WEB_ADDRESS
+#will now run the main start up process
 
 class Vector2:
     def __init__(self, x, y):
@@ -197,7 +204,8 @@ def gen_token(private):
     salt = str(correct_time).encode()
     key = str(private).encode()
     hash_one = scrypt(key, salt=salt, n=16384, r=8, p=1, dklen=32)
-    return int.from_bytes(hash_one)
+    print(f"generated at: {time()}")
+    return int.from_bytes(hash_one,"big")
 
 
 # Test cases for Vector2 class and dir_to_vector2 function

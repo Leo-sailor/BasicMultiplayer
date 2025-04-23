@@ -1,13 +1,14 @@
 import asyncio
-from time import time_ns
+from time import time_ns, time
 from typing import Literal
 import pygame as pg
 from requests import Response
-from BaseClasses import IP, PORT, Vector2, gen_token,basic_boundary
+from BaseClasses import LINK, Vector2, gen_token,basic_boundary
 from aiohttp import ClientSession, ClientResponse
 from random import randrange
 import requests
 from ViewportManager import ViewportManager
+MAX_SPEED = 50
 
 
 class ObjectHolder:
@@ -29,26 +30,30 @@ def play(screen:pg.Surface,server_num:int)->tuple[Literal["Quit","Start"],list[i
 
 async def play_async(screen:pg.Surface,server_num:int)->tuple[Literal["Quit","Start"],list[int]]:
     name = "Player" + str(randrange(0,1000))
-    response: Response = requests.post(f'http://{IP}:{PORT}/{server_num}/join/{name}')
-    json:dict = response.json()
+    response: Response = requests.post(f'{LINK}/{server_num}/join/{name}')
+    json = {"None": "None"}
     try:
         assert response.status_code == 201
+        json: dict = response.json()
     except:
+        print("ERROR: Failed to join server")
+        print(f"Request: {LINK}/{server_num}/join/{name}")
+        print(f"Response: {response.status_code}, {json}")
         raise ConnectionError
     code = json.get('private_code')
     others_state = ObjectHolder([])
     client_state = ObjectHolder([Vector2(0,0),Vector2(0,0)])
     runners = [asyncio.create_task(ui(screen,others_state,client_state)),
-               asyncio.create_task(sender(server_num,code,client_state)),
-               asyncio.create_task(receiver(server_num, name, others_state))]
+               asyncio.create_task(sender(screen,server_num,code,client_state)),
+               asyncio.create_task(receiver(screen,server_num, name, others_state))]
     main,waiting = await asyncio.wait(runners,return_when=asyncio.FIRST_COMPLETED)
     for task in waiting:
         task.cancel()
-    result = "Quit",0
+    result = screen,"Quit",0
     for task in main:
         result = task.result()
     return result
-async def sender(server_num: int,private_code:int,client_state:ObjectHolder)->tuple[Literal["Quit","Start"],list[int]]:
+async def sender(screen:pg.Surface,server_num: int,private_code:int,client_state:ObjectHolder)->tuple[pg.Surface,Literal["Quit","Start"],list[int]]:
     async with ClientSession() as session:
         error_count = 0
         while error_count<100:
@@ -59,32 +64,34 @@ async def sender(server_num: int,private_code:int,client_state:ObjectHolder)->tu
             posx = position.x
             posy = position.y
             token = gen_token(private_code)
-            response = await session.put(f"http://{IP}:{PORT}/{server_num}/update/{token}/{velx},{vely}/{posx},{posy}")
+            print(f"Started sending at: {time()}")
+            response = await session.put(f"{LINK}/{server_num}/update/{token}/{velx},{vely}/{posx},{posy}")
+            print(f"Finished sending at: {time()}")
             json = await response.json()
             if response.status != 200:
                 print("ERROR: Failed to send position to server")
-                print(f"Request: http://{IP}:{PORT}/{server_num}/update/{token}/{velx},{vely}/{posx},{posy}")
+                print(f"Request: {LINK}/{server_num}/update/{token}/{velx},{vely}/{posx},{posy}")
                 print(f"Response: {response.status}, {json}")
                 error_count += 1
-    return "Quit",[0]
+    return screen,"Quit",[0]
 
-async def receiver(server_num, name, others_state:ObjectHolder)->tuple[Literal["Quit", "Start"],list[int]]:
+async def receiver(screen:pg.Surface,server_num, name, others_state:ObjectHolder)->tuple[pg.Surface,Literal["Quit", "Start"],list[int]]:
     async with ClientSession() as session:
         error_count = 0
         while error_count<100:
-            response:ClientResponse = await session.get(f"http://{IP}:{PORT}/{server_num}/get/{name}")
+            response:ClientResponse = await session.get(f"{LINK}/{server_num}/get/{name}")
             json:dict = await response.json()
             try:
                 assert response.status == 200
             except AssertionError:
                 print("ERROR: Failed to send position to server")
-                print(f"Request: http://{IP}:{PORT}/{server_num}/get/{name}")
+                print(f"Request: {LINK}/{server_num}/get/{name}")
                 print(f"Response: {response.status}, {json}")
                 error_count += 1
             else:
                 others_state.set_value(json['data'])
-    return "Quit",[0]
-async def ui(screen:pg.Surface,others_state,client_state) -> tuple[Literal["Quit","Start"],list[int]]:
+    return screen,"Quit",[0]
+async def ui(screen:pg.Surface,others_state,client_state) -> tuple[pg.Surface,Literal["Quit","Start"],list[int]]:
     viewport = ViewportManager(screen,basic_boundary,Vector2(0,0))
     last_time = time_ns()
     while True:
@@ -95,13 +102,17 @@ async def ui(screen:pg.Surface,others_state,client_state) -> tuple[Literal["Quit
         direction = client_state[0].direction()
         for event in pg.event.get():
             if event.type == pg.QUIT:
-                return "Quit",[0]
+                return screen,"Quit",[0]
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_ESCAPE:
-                    return "Start",[1]
+                    return screen,"Start",[1]
+            if event.type in [pg.VIDEORESIZE]:
+                best_color_depth = pg.display.mode_ok([event.w,event.h], pg.RESIZABLE, 32)
+                screen = pg.display.set_mode([event.w,event.h], pg.RESIZABLE, best_color_depth)
         keys = pg.key.get_pressed()
         if keys[pg.K_UP] or keys[pg.K_w]:
             speed += 100 * delta_time
+            speed = MAX_SPEED if speed>MAX_SPEED else speed
         if keys[pg.K_DOWN] or keys[pg.K_s]:
             speed -= 100 * delta_time
             speed = 0 if speed<0 else speed
